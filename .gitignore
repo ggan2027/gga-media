@@ -1,0 +1,11 @@
+# nada de esto entra aquí jamás
+*.env
+.env*
+*.key
+*.pem
+*.p12
+*token*
+*secret*
+*password*
+*credencial*
+.DS_Store
