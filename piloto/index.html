@@ -69,14 +69,15 @@ button:disabled{opacity:.6}
   <h2>Con quién</h2>
   <p>Soy Gabriela Gonzalo. Soy ejecutiva y trabajo con prácticas ancestrales adaptadas a la vida de hoy. Estoy certificada por la Foundation for Shamanic Studies, de Michael Harner, y trabajo con muchísimas personas que viven con la agenda llena y el cuerpo avisando.</p>
 
-  <form id="registro" method="POST" action="BREVO_ACTION_URL" novalidate>
+  <form id="registro" method="POST" action="https://bbf2f8a8.sibforms.com/serve/MUIFAH6SikKFY8eR9vngQDJAhDz6P4fhBxDB4BvK8kq2AAp1R9E6-foSxxegm78ZURj4POZa41agleL01jTpEwa0mF0BNVM7ONNyViW_m2RRMre80tWt3sr9MybQPDxdOz4uSQIsrFRrmIEPGHCqfUm66Ws8M-Lx3vCEYhx-ofnCEcPeD-CS-7esiOHsiWyT7DoFOyUBwoIYXseZVQ==" novalidate>
     <h2 style="margin-top:0">Reserva tu plaza</h2>
     <label for="nombre">Tu nombre</label>
     <input type="text" id="nombre" name="FIRSTNAME" autocomplete="given-name" required>
     <label for="email">Tu correo</label>
     <input type="email" id="email" name="EMAIL" autocomplete="email" required>
-    <label for="wa">Tu WhatsApp, con el prefijo del país</label>
-    <input type="tel" id="wa" name="WHATSAPP" autocomplete="tel" placeholder="+34 600 000 000" required>
+    <label for="wa">Tu WhatsApp</label>
+    <div style="display:flex;gap:8px"><select id="cc" name="WHATSAPP__COUNTRY_CODE" aria-label="Prefijo del país" style="flex:0 0 42%;padding:14px 8px;font:inherit;border:1px solid var(--linea);border-radius:10px;background:var(--marfil)"><option value="+34">España +34</option><option value="+1">EE. UU. y Canadá +1</option><option value="+52">México +52</option><option value="+57">Colombia +57</option><option value="+54">Argentina +54</option><option value="+56">Chile +56</option><option value="+51">Perú +51</option><option value="+58">Venezuela +58</option><option value="+593">Ecuador +593</option><option value="+598">Uruguay +598</option><option value="+595">Paraguay +595</option><option value="+591">Bolivia +591</option><option value="+506">Costa Rica +506</option><option value="+507">Panamá +507</option><option value="+502">Guatemala +502</option><option value="+503">El Salvador +503</option><option value="+504">Honduras +504</option><option value="+505">Nicaragua +505</option><option value="+1809">Rep. Dominicana +1809</option><option value="+1787">Puerto Rico +1787</option><option value="+53">Cuba +53</option><option value="+351">Portugal +351</option><option value="+44">Reino Unido +44</option><option value="+33">Francia +33</option><option value="+39">Italia +39</option><option value="+49">Alemania +49</option><option value="+41">Suiza +41</option></select>
+    <input type="tel" id="wa" name="WHATSAPP" autocomplete="tel-national" inputmode="tel" placeholder="Tu número" required></div>
     <input type="text" name="email_address_check" value="" style="display:none" tabindex="-1" autocomplete="off">
     <input type="hidden" name="locale" value="es">
     <label class="check"><input type="checkbox" name="OPT_IN" value="1" required><span>Acepto recibir por correo y WhatsApp el enlace de la clase, los recordatorios y contenido de Gabriela Gonzalo. Puedo darme de baja cuando quiera. Leí la <a href="privacidad.html" target="_blank">política de privacidad</a>.</span></label>
@@ -88,19 +89,22 @@ button:disabled{opacity:.6}
   <p class="pie">Esta clase es educativa y no sustituye atención médica ni psicológica. · <a href="privacidad.html">Privacidad</a> · @gabrielagonzalo.ancestral</p>
 </main>
 <script>
-const f=document.getElementById('registro'),err=document.getElementById('error');
-f.addEventListener('submit',e=>{
-  err.style.display='none';
-  const wa=f.WHATSAPP.value.replace(/[^\d+]/g,'');
+const f=document.getElementById('registro'),err=document.getElementById('error'),btn=document.getElementById('enviar');
+try{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'';const m={'America/Mexico_City':'+52','America/Bogota':'+57','America/Argentina/Buenos_Aires':'+54','America/Santiago':'+56','America/Lima':'+51','America/Caracas':'+58','America/Guayaquil':'+593','America/Montevideo':'+598','America/New_York':'+1','America/Chicago':'+1','America/Los_Angeles':'+1','America/Denver':'+1','America/Puerto_Rico':'+1787','America/Santo_Domingo':'+1809','America/Costa_Rica':'+506','America/Panama':'+507','Europe/Lisbon':'+351','Europe/London':'+44'};if(m[tz])f.WHATSAPP__COUNTRY_CODE.value=m[tz];}catch(e){}
+f.addEventListener('submit',async e=>{
+  e.preventDefault();err.style.display='none';
+  const wa=f.WHATSAPP.value.replace(/\D/g,'').replace(/^0+/,'');
   let msg='';
   if(!f.FIRSTNAME.value.trim()) msg='Falta tu nombre.';
   else if(!/^\S+@\S+\.\S+$/.test(f.EMAIL.value.trim())) msg='Revisa el correo.';
-  else if(!/^\+?\d{8,15}$/.test(wa)) msg='Revisa el WhatsApp: con el prefijo del país, por ejemplo +34.';
+  else if(wa.length<6||wa.length>13) msg='Revisa el número de WhatsApp, sin el prefijo del país.';
   else if(!f.OPT_IN.checked) msg='Marca la casilla para poder mandarte el enlace.';
-  else if(f.action.indexOf('BREVO_ACTION_URL')>-1) msg='El formulario todavía no está conectado.';
-  if(msg){e.preventDefault();err.textContent=msg;err.style.display='block';return;}
-  f.WHATSAPP.value=wa;
-  document.getElementById('enviar').disabled=true;
+  if(msg){err.textContent=msg;err.style.display='block';return;}
+  if(f.email_address_check.value) return;
+  btn.disabled=true;btn.textContent='Guardando tu plaza…';
+  const d=new URLSearchParams();d.set('FIRSTNAME',f.FIRSTNAME.value.trim());d.set('EMAIL',f.EMAIL.value.trim());d.set('WHATSAPP__COUNTRY_CODE',f.WHATSAPP__COUNTRY_CODE.value);d.set('WHATSAPP',wa);d.set('email_address_check','');d.set('locale','es');
+  try{await fetch(f.action,{method:'POST',mode:'no-cors',body:d});location.href='gracias.html';}
+  catch(x){btn.disabled=false;btn.textContent='Quiero mi plaza';err.textContent='No se pudo guardar. Revisa tu conexión y vuelve a intentarlo.';err.style.display='block';}
 });
 </script>
 </body>
